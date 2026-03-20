@@ -1,4 +1,3 @@
-import sys
 from solver import Solver
 
 
@@ -37,26 +36,31 @@ def ask_for_activities() -> list[str]:
 	return activities
 
 def main(activities: list[str], participants: dict[str, list[str]]):
-	# TODO: Solve.
-	solver = Solver(activities, participants)
-	schedule = solver.solve()
+	spots = int(input("Amount of spots per activity: "))
+	if spots*len(activities) < len(participants):
+		print("! Not enough spots for everyone.")
+		exit(1)
 
-	if schedule == None:
+	solver = Solver(activities, participants, spots)
+	solution = solver.solve()
+
+	if solution == None:
 		print("! No solution found.")
 		exit(1)
 	
+	schedule = {activity: [] for activity in activities}
+	for i in range(len(solution)):
+		name = list(participants)[i]
+		choiceIndex = solution[i]
+		choice = participants[name][choiceIndex]
+		schedule[choice].append(name)
+
 	print("! Found a solution:")
-	for act, part in schedule:
-		print(f"{act}: ")
-		for p in part:
-			print(f"{p}", end=",")
-	pass
+	for activity in schedule:
+		print(f"{activity}: ")
+		for p in schedule[activity]:
+			print(f"{p}", end=", ")
 
 if __name__ == "__main__":
-	print(sys.argv)
-	if True:
-		activities = ask_for_activities()
-		main(activities, ask_for_participants(activities))
-	else:
-		# TODO: Sample data.
-		pass
+	activities = ask_for_activities()
+	main(activities, ask_for_participants(activities))
