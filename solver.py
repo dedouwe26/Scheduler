@@ -6,7 +6,7 @@ class Solver:
 		self.activities = len(activities)
 		self.participants = [[activities.index(choice) for choice in participants[name]] for name in participants]
 		self.maxSpots = maxSpots
-		self.solution = [0 for i in range(len(participants))]
+		self.solution = [i[0] for i in self.participants]
 	
 	def solve(self) -> list[int]:
 		self.descend()
@@ -21,18 +21,17 @@ class Solver:
 		for choice in self.solution:
 			if self.occupancy[choice] >= self.maxSpots:
 				isValidSolution = False
-				break
 			self.occupancy[choice] += 1
 		
 		if isValidSolution:
 			return
 
 		# Search the highest lowering score.
-		max_score = -1
+		max_score = None
 		index = -1
 		for i in range(len(self.participants)):
 			score = self.rate_lowering(i)
-			if score > max_score:
+			if max_score == None or score > max_score:
 				max_score = score
 				index = i
 		
@@ -43,29 +42,35 @@ class Solver:
 		self.descend()
 
 	def rate_lowering(self, index) -> int:
-		currentChoice =  self.solution[index]
+		currentChoice = self.solution[index]
 		choices = self.participants[index]
+		try:
+			currentChoiceIndex = choices.index(currentChoice)
+		except:
+			currentChoiceIndex = -1
 		# Calculate base score.
 		# Lowering one to 2nd scores higher than lowering one to 3rd.
-		score = len(choices) - currentChoice
+		if currentChoiceIndex != -1:
+			score = len(choices) - currentChoiceIndex
+		else: # Is already beyond choices.
+			score = 1 # NOTE: Perhaps this needs to be balanced.
 
-		# Add some points if the next choice is one with a lot of occupancy.
-		try:
-			if self.occupancy[choices[currentChoice+1]] >= self.maxSpots:
-				score += 1 # NOTE: Perhaps this still needs to be balanced.
-		except:
-			pass
+		# Add some points if the current choice is one with a lot of occupancy.
+		if self.occupancy[currentChoice] > self.maxSpots:
+			score += 1 # NOTE: Perhaps this needs to be balanced.
+		if currentChoiceIndex+1 < len(choices) and self.occupancy[choices[currentChoiceIndex+1]] >= self.maxSpots:
+			score -= 1 # NOTE: Perhaps this needs to be balanced.
+
 		return score
 	def lower_choice(self, index):
 		"""
 		Lowers the choice for 1 participant at the specified index.
 		"""
-		self.solution[index] += 1
-
-		choices = self.participants[list(self.participants)[index]]
+		choices = self.participants[index]
 		# Lowering beyond its choices.
-		if self.solution[index] >= len(choices):
+		if self.solution[index]+1 >= len(choices):
 			# Chooses an activity the participant did not have on his list. Change this if you want.
 			# Currently chooses the least busy activity.
 			self.solution[index] = self.occupancy.index(min(self.occupancy))
 			return
+		self.solution[index] = choices[self.solution[index]+1]

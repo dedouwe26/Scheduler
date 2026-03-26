@@ -1,6 +1,5 @@
 from solver import Solver
 
-
 def ask_for_participants(activities) -> dict[str, list[str]]:
 	def ask_for_choice(i, choices) -> str:
 		choice = input(f"\t{i+1}e choice: ")
@@ -51,15 +50,15 @@ def main(activities: list[str], participants: dict[str, list[str]]):
 	schedule = {activity: [] for activity in activities}
 	for i in range(len(solution)):
 		name = list(participants)[i]
-		choiceIndex = solution[i]
-		choice = participants[name][choiceIndex]
-		schedule[choice].append(name)
+		choice = solution[i]
+		schedule[list(schedule)[choice]].append(name)
 
 	print("! Found a solution:")
 	for activity in schedule:
-		print(f"{activity}: ")
+		print(f"{activity}: ", end="")
 		for p in schedule[activity]:
 			print(f"{p}", end=", ")
+		print()
 
 if __name__ == "__main__":
 	activities = ask_for_activities()
