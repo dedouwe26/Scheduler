@@ -36,14 +36,17 @@ class Solver:
 			self.occupancy[choice] += 1
 		
 		return not isValidSolution
-
-	def rate_lowering(self, index) -> int:
+	def get_choice_index(self, index):
 		currentChoice = self.solution[index]
 		choices = self.participants[index]
 		try:
-			currentChoiceIndex = choices.index(currentChoice)
+			return choices.index(currentChoice)
 		except:
-			currentChoiceIndex = -1
+			return -1
+	def rate_lowering(self, index) -> int:
+		currentChoice = self.solution[index]
+		choices = self.participants[index]
+		currentChoiceIndex = self.get_choice_index(index)
 		# Calculate base score.
 		# Lowering one to 2nd scores higher than lowering one to 3rd.
 		if currentChoiceIndex != -1:
@@ -51,22 +54,31 @@ class Solver:
 		else: # Is already beyond choices.
 			score = 1 # NOTE: Perhaps this needs to be balanced.
 
-		# Add some points if the current choice is one with a lot of occupancy.
+		# Add some points if the current choice is one with a high occupancy.
 		if self.occupancy[currentChoice] > self.maxSpots:
 			score += 1 # NOTE: Perhaps this needs to be balanced.
-		if currentChoiceIndex+1 < len(choices) and self.occupancy[choices[currentChoiceIndex+1]] >= self.maxSpots:
+		
+		nextChoice = self.get_lowered_choice(index, currentChoiceIndex)
+
+		# Remove some points if the next choice is one with a high occupancy.
+		if self.occupancy[nextChoice] >= self.maxSpots:
 			score -= 1 # NOTE: Perhaps this needs to be balanced.
 
 		return score
+
+	def get_lowered_choice(self, index, currentChoiceIndex):
+		choices = self.participants[index]
+		# Lowering beyond its choices.
+		if currentChoiceIndex+1 <= len(choices) or currentChoiceIndex == -1:
+			# Chooses an activity the participant did not have on his list. Change this if you want.
+			# Currently chooses the least busy activity.
+			nextChoice = self.occupancy.index(min(self.occupancy))
+			return nextChoice
+		nextChoice = choices[currentChoiceIndex+1]
+		return nextChoice
+
 	def lower_choice(self, index):
 		"""
 		Lowers the choice for 1 participant at the specified index.
 		"""
-		choices = self.participants[index]
-		# Lowering beyond its choices.
-		if self.solution[index]+1 >= len(choices):
-			# Chooses an activity the participant did not have on his list. Change this if you want.
-			# Currently chooses the least busy activity.
-			self.solution[index] = self.occupancy.index(min(self.occupancy))
-			return
-		self.solution[index] = choices[self.solution[index]+1]
+		self.solution[index] = self.get_lowered_choice(index, self.get_choice_index(index))
