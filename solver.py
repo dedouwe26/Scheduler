@@ -9,12 +9,24 @@ class Solver:
 		self.solution = [i[0] for i in self.participants]
 	
 	def solve(self) -> list[int]:
-		self.descend()
+		while self.is_not_solved():
+			# Search the highest lowering score.
+			max_score = None
+			index = -1
+			for i in range(len(self.participants)):
+				score = self.rate_lowering(i)
+				if max_score == None or score > max_score:
+					max_score = score
+					index = i
+			
+			# Lower that one.
+			self.lower_choice(index)
+
 		return self.solution
 
 	occupancy: list[int]
 	solution: list[int]
-	def descend(self):
+	def is_not_solved(self):
 		# Check if the current solution is valid.
 		self.occupancy = [0 for i in range(self.activities)]
 		isValidSolution = True
@@ -23,23 +35,7 @@ class Solver:
 				isValidSolution = False
 			self.occupancy[choice] += 1
 		
-		if isValidSolution:
-			return
-
-		# Search the highest lowering score.
-		max_score = None
-		index = -1
-		for i in range(len(self.participants)):
-			score = self.rate_lowering(i)
-			if max_score == None or score > max_score:
-				max_score = score
-				index = i
-		
-		# Lower that one.
-		self.lower_choice(index)
-
-		# Recurse and check for valid solution.
-		self.descend()
+		return not isValidSolution
 
 	def rate_lowering(self, index) -> int:
 		currentChoice = self.solution[index]
