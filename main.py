@@ -34,16 +34,8 @@ def ask_for_activities() -> list[str]:
 		activities.append(input(f"{i+1}e activity's name: "))
 	return activities
 
-def main(activities: list[str], participants: dict[str, list[str]]):
-	spots = int(input("Amount of spots per activity: "))
-	if spots*len(activities) < len(participants):
-		print("! Not enough spots for everyone.")
-		exit(1)
-
-	solver = Solver(activities, participants, spots)
-	solution = solver.solve()
-
-	if solution == None:
+def present_result(solution: list[int] | None, participants: dict[str, list[str]], activities):
+	if solution == None or len(solution) != len(participants):
 		print("! No solution found.")
 		exit(1)
 	
@@ -54,11 +46,20 @@ def main(activities: list[str], participants: dict[str, list[str]]):
 		schedule[list(schedule)[choice]].append(name)
 
 	print("! Found a solution:")
-	for activity in schedule:
-		print(f"{activity}: ", end="")
-		for p in schedule[activity]:
-			print(f"{p}", end=", ")
-		print()
+	for activity in dict(sorted(schedule.items())):
+		p = schedule[activity]
+		p.sort()
+		print(f"{activity}: {", ".join(p)}.")
+
+def main(activities: list[str], participants: dict[str, list[str]]):
+	spots = int(input("Amount of spots per activity: "))
+	if spots*len(activities) < len(participants):
+		print("! Not enough spots for everyone.")
+		exit(1)
+
+	solver = Solver(activities, participants, spots)
+	solution = solver.solve()
+	present_result(solution, participants, activities)
 
 if __name__ == "__main__":
 	activities = ask_for_activities()
