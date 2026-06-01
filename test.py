@@ -1,7 +1,7 @@
 import math
 import main
 import solver
-import sample as sample
+import sample2 as sample
 
 if __name__ == "__main__":
 	recommendedCount = math.ceil(len(sample.participants) / len(sample.activities))

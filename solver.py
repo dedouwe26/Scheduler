@@ -93,13 +93,13 @@ class Solver:
 			return False
 		# Check if the current solution is valid and generate occupancies.
 		self.queue[0].occupancy = [0 for _ in range(self.activities)]
-		isInvalid = False
-		for choice in self.queue[0].state:
+		is_invalid = False
+		for choice in self.state():
 			if self.occupancy()[choice] >= self.max_spots:
-				isInvalid = True
+				is_invalid = True
 			self.occupancy()[choice] += 1
 
-		return isInvalid
+		return is_invalid
 
 	# Choice rating and lowering.
 	def get_choice_index(self, index):
@@ -141,14 +141,14 @@ class Solver:
 			raise Exception("not supported")
 			# nextChoice = self.occupancy().index(min(self.occupancy()))
 			# return nextChoice
-		nextChoice = choices[current_choice_index+1]
-		return nextChoice
+		next_choice = choices[current_choice_index+1]
+		return next_choice
 
 	def lower_choice(self, index):
 		"""
 		Lowers the choice for 1 participant at the specified index.
 		"""
-		new_state = self.queue[0].state.copy()
+		new_state = self.state().copy()
 		new_state[index] = self.get_lowered_choice(index, self.get_choice_index(index))
 		self.queue.append(State(
 			new_state
